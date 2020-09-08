@@ -54,12 +54,13 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+uint32_t millis(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 /* USER CODE BEGIN Private defines */
-
+#define true	1
+#define false	0
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
