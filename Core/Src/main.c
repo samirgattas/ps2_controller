@@ -99,6 +99,25 @@ int main(void)
 
   config_gamepad(&hspi1, false, false);
 
+  switch(readType()) {
+	case 0:
+		HAL_UART_Transmit(&huart1, (uint8_t*) "Unknown Controller type found\n",
+				30, 100);
+		break;
+	case 1:
+		HAL_UART_Transmit(&huart1, (uint8_t*) "DualShock Controller found\n",
+				27, 100);
+		break;
+	case 2:
+		HAL_UART_Transmit(&huart1, (uint8_t*) "GuitarHero Controller found\n",
+				28, 100);
+		break;
+	case 3:
+		HAL_UART_Transmit(&huart1, (uint8_t*) "Wireless Controller found\n", 26,
+				100);
+		break;
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -167,10 +186,10 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
