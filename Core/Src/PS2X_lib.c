@@ -59,9 +59,11 @@ uint8_t Analog(uint8_t button) {
 
 /****************************************************************************************/
 unsigned char _gamepad_shiftinout(char byte) {
-	uint8_t *rx_data = 0;
-	HAL_SPI_Receive(&spi, (uint8_t*)rx_data, 1, 100);
-	return (char)*rx_data;
+	uint8_t rx_data = 1;
+	uint8_t tx_data = (uint8_t)byte;
+	HAL_SPI_TransmitReceive(&spi, &tx_data, &rx_data, 1, 100);
+	//HAL_SPI_Receive(&spi, (uint8_t*)rx_data, 1, 100);
+	return (char)rx_data;
 }
 
 /****************************************************************************************/
