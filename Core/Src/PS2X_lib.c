@@ -104,6 +104,9 @@ _Bool read_gamepad(_Bool motor1, uint8_t motor2) {
 		}
 
 		ATT_SET(); // HI disable joystick
+
+		HAL_Delay(100);
+
 		// Check to see if we received valid data or not.
 		// We should be in analog mode for our data to be valid (analog == 0x7_)
 		if ((PS2data[1] & 0xf0) == 0x70)

@@ -96,9 +96,11 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  int rta;
+  int rta = 3;
 
-  rta = config_gamepad(&hspi1, false, false);
+  while (rta != 0) {
+	  rta = config_gamepad(&hspi1, false, false);
+  }
   if (rta == 0) {
 	  HAL_UART_Transmit(&huart1, (uint8_t*)"Encontrado\n", 11, 100);
   } else if (rta == 1) {
@@ -136,9 +138,15 @@ int main(void)
   {
     /* USER CODE END WHILE */
 	  read_gamepad(false, 0);
-	  if (Button(PSB_BLUE)) {
-	      HAL_UART_Transmit(&huart1, (uint8_t*)"Presionaste X\n", 14, 100);
-	    }
+		if (Button(PSB_BLUE)) {
+			HAL_UART_Transmit(&huart1, (uint8_t*) "Presionaste X\n", 14, 100);
+		}
+		if(Button(PSB_L1) || Button(PSB_R1))
+		    {
+			HAL_UART_Transmit(&huart1, (uint8_t*) "Stick values:\n", 14, 100);
+		      // Left stick, Y axis. Other options: LX, RY, RX
+		      Analog(PSS_LY);
+		    }
 	  HAL_Delay(200);
     /* USER CODE BEGIN 3 */
   }
