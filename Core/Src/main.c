@@ -22,7 +22,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "PS2X_lib.h"
 #include "ps2_controller.h"
 /* USER CODE END Includes */
 
