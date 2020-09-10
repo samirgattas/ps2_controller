@@ -21,6 +21,7 @@ static uint8_t type_read[] = { 0x01, 0x45, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A,
 
 void ATT_SET(void);
 void ATT_CLR(void);
+_Bool read_gamepad_config(_Bool motor1, uint8_t motor2);
 
 /****************************************************************************************/
 _Bool NewSomeButtonState() {
@@ -105,6 +106,65 @@ _Bool read_gamepad(_Bool motor1, uint8_t motor2) {
 
 		ATT_SET(); // HI disable joystick
 
+		//HAL_Delay(100);
+
+		// Check to see if we received valid data or not.
+		// We should be in analog mode for our data to be valid (analog == 0x7_)
+		if ((PS2data[1] & 0xf0) == 0x70)
+			break;
+
+		// If we got to here, we are not in analog mode, try to recover...
+		reconfig_gamepad(); // try to get back into Analog mode.
+		//HAL_Delay(read_delay);
+	}
+
+	// If we get here and still not in analog mode (=0x7_), try increasing the read_delay...
+	if ((PS2data[1] & 0xf0) != 0x70) {
+		if (read_delay < 10)
+			read_delay++;   // see if this helps out...
+	}
+
+	last_buttons = buttons; //store the previous buttons states
+
+	buttons = (uint16_t) (PS2data[4] << 8) + PS2data[3]; //store as one value for multiple functions
+	last_read = millis();
+	return ((PS2data[1] & 0xf0) == 0x70);  // 1 = OK = analog mode - 0 = NOK
+}
+
+/**********/
+_Bool read_gamepad_config(_Bool motor1, uint8_t motor2) {
+	double temp = millis() - last_read;
+
+	if (temp > 1500) //waited to long
+		reconfig_gamepad();
+
+	if (temp < read_delay)  //waited too short
+		HAL_Delay(read_delay - temp);
+
+	/*if (motor2 != 0x00)
+		motor2 = map(motor2, 0, 255, 0x40, 0xFF); //noting below 40 will make it spin
+	*/
+	uint8_t dword[9] = { 0x01, 0x42, 0, motor1, motor2, 0, 0, 0, 0 };
+	uint8_t dword2[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+	// Try a few times to get valid data...
+	for (uint8_t RetryCnt = 0; RetryCnt < 5; RetryCnt++) {
+		ATT_CLR(); // low enable joystick
+
+		//delayMicroseconds(CTRL_BYTE_DELAY);
+		//Send the command to send button and joystick data;
+		for (int i = 0; i < 9; i++) {
+			PS2data[i] = _gamepad_shiftinout(dword[i]);
+		}
+
+		if (PS2data[1] == 0x79) { //if controller is in full data return mode, get the rest of data
+			for (int i = 0; i < 12; i++) {
+				PS2data[i + 9] = _gamepad_shiftinout(dword2[i]);
+			}
+		}
+
+		ATT_SET(); // HI disable joystick
+
 		HAL_Delay(100);
 
 		// Check to see if we received valid data or not.
@@ -129,7 +189,6 @@ _Bool read_gamepad(_Bool motor1, uint8_t motor2) {
 	last_read = millis();
 	return ((PS2data[1] & 0xf0) == 0x70);  // 1 = OK = analog mode - 0 = NOK
 }
-
 /****************************************************************************************/
 /*uint8_t config_gamepad(uint8_t clk, uint8_t cmd, uint8_t att, uint8_t dat) {
  return config_gamepad(clk, cmd, att, dat, false, false);
@@ -142,8 +201,8 @@ uint8_t config_gamepad(SPI_HandleTypeDef *_spi, _Bool pressures, _Bool rumble) {
 	uint8_t temp[sizeof(type_read)];
 
 	//new error checking. First, read gamepad a few times to see if it's talking
-	read_gamepad(false, 0x00);
-	read_gamepad(false, 0x00);
+	read_gamepad_config(false, 0x00);
+	read_gamepad_config(false, 0x00);
 
 	//see if it talked - see if mode came back.
 	//If still anything but 41, 73 or 79, then it's not talking
@@ -184,7 +243,7 @@ uint8_t config_gamepad(SPI_HandleTypeDef *_spi, _Bool pressures, _Bool rumble) {
 		}
 		sendCommandString(exit_config, sizeof(exit_config));
 
-		read_gamepad(false, 0x00);
+		read_gamepad_config(false, 0x00);
 
 		if (pressures) {
 			if (PS2data[1] == 0x79)
