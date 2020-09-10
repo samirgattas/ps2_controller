@@ -96,7 +96,8 @@ int main(void)
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  conectar_ps2();
+  HAL_InitTick(0);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,7 +105,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  acusar_botones();
+	  ps2_controller();
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */

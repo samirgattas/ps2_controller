@@ -152,6 +152,7 @@ _Bool read_gamepad_config(_Bool motor1, uint8_t motor2) {
 		ATT_CLR(); // low enable joystick
 
 		//delayMicroseconds(CTRL_BYTE_DELAY);
+		HAL_Delay(1);
 		//Send the command to send button and joystick data;
 		for (int i = 0; i < 9; i++) {
 			PS2data[i] = _gamepad_shiftinout(dword[i]);
@@ -165,7 +166,7 @@ _Bool read_gamepad_config(_Bool motor1, uint8_t motor2) {
 
 		ATT_SET(); // HI disable joystick
 
-		HAL_Delay(100);
+		HAL_Delay(50);
 
 		// Check to see if we received valid data or not.
 		// We should be in analog mode for our data to be valid (analog == 0x7_)
@@ -219,10 +220,12 @@ uint8_t config_gamepad(SPI_HandleTypeDef *_spi, _Bool pressures, _Bool rumble) {
 
 		//read type
 		//delayMicroseconds(CTRL_BYTE_DELAY);
+		HAL_Delay(1);
 
 		ATT_CLR(); // low enable joystick
 
 		//delayMicroseconds(CTRL_BYTE_DELAY);
+		HAL_Delay(1);
 
 		for (int i = 0; i < 9; i++) {
 			temp[i] = _gamepad_shiftinout(type_read[i]);

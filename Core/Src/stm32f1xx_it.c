@@ -59,6 +59,7 @@
 
 /* USER CODE BEGIN EV */
 extern uint32_t contador_ms;
+extern uint32_t tout_ps2;
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -183,6 +184,7 @@ void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
 	contador_ms++;
+	tout_ps2<= 0 ? tout_ps2 = 0 : tout_ps2--;
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */

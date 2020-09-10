@@ -5,17 +5,51 @@
  *      Author: xx
  */
 
+// ############################################################################
+// INCLUDE
 #include "ps2_controller.h"
+
+// ############################################################################
+// DEFINE
+# define DEBUG_PS2 1
+// ############################################################################
+// VARIABLES EXTERNAS
 
 UART_HandleTypeDef huart1;
 SPI_HandleTypeDef hspi1;
 
-void conectar_ps2() {
-	int rta = 3;
+// ############################################################################
+// VARIABLES PRIVADAS
 
-	while (rta != 0) {
-		rta = config_gamepad(&hspi1, false, false);
-	}
+// Estado y subestado de la interfaz para comunicacion con ps2 controller
+uint16_t estado_ps2 = 0;
+uint16_t sub_estado_ps2 = 0;
+
+// Time Out 1 = 1 [ms]
+uint32_t tout_ps2 = 0;
+
+// Reintentos de conexion con control de PS2
+uint16_t intentos_conexion = 0;
+
+// ############################################################################
+// CABECERA DE FUNCIONES PRIVADAS
+
+void set_tout(uint32_t ms);
+
+// ############################################################################
+// FUNCIONES PRIVADAS
+
+void set_tout(uint32_t ms) {
+	tout_ps2 = ms;
+}
+
+// ############################################################################
+// FUNCIONES PUBLICAS
+
+int8_t conectar_ps2() {
+	uint8_t rta = 3;
+
+	rta = config_gamepad(&hspi1, false, false);
 	if (rta == 0) {
 		HAL_UART_Transmit(&huart1, (uint8_t*) "Encontrado\n", 11, 100);
 	} else if (rta == 1) {
@@ -46,10 +80,12 @@ void conectar_ps2() {
 				100);
 		break;
 	}
+	return rta;
 }
 
-void acusar_botones() {
-	read_gamepad(false, 0);
+_Bool acusar_botones() {
+	_Bool isAnalogMode;
+	isAnalogMode = read_gamepad(false, 0);
 	if (Button(PSB_CROSS)) {
 		HAL_UART_Transmit(&huart1, (uint8_t*) "Press Cross\n", 12, 100);
 	}
@@ -75,5 +111,48 @@ void acusar_botones() {
 		} else if (Analog(PSS_RX) < 128) {
 			HAL_UART_Transmit(&huart1, (uint8_t*) "Right <-\n", 9, 100);
 		}
+	}
+	return isAnalogMode;
+}
+
+void ps2_controller() {
+	switch (estado_ps2) {
+	case 0:
+		tout_ps2 = 0;
+		estado_ps2++;
+		sub_estado_ps2 = 1;
+		intentos_conexion = 0;
+		break;
+	case 1:
+		switch (sub_estado_ps2) {
+		case 1:
+			if (!conectar_ps2()) {
+				// Entra si conectó
+				estado_ps2++;
+			} else if (intentos_conexion > 2) {
+				// Entra si intento 3 veces
+				set_tout(10000);	// Espera 10
+				if (DEBUG_PS2 == 1){
+					HAL_UART_Transmit(&huart1, (uint8_t*) "-> Espera 10s\n", 14, 100);
+				}
+				sub_estado_ps2++;
+			}
+			intentos_conexion++;
+			break;
+		case 2:
+			if (tout_ps2 == 0) {
+				if(DEBUG_PS2 == 1){
+					HAL_UART_Transmit(&huart1, (uint8_t*) "-> Podes reintentar\n", 20, 100);
+				}
+				estado_ps2 = 0;
+			}
+			break;
+		}
+		break;
+	case 2:
+		if (!acusar_botones()) {
+			estado_ps2 = 0;
+		}
+		break;
 	}
 }

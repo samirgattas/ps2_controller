@@ -12,8 +12,10 @@
 #include "PS2X_lib.h"
 
 
-void conectar_ps2();
-void acusar_botones();
+int8_t conectar_ps2();
+_Bool acusar_botones();
+
+void ps2_controller();
 
 
 #endif /* INC_PS2_CONTROLLER_H_ */
